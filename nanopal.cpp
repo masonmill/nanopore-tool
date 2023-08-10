@@ -151,6 +151,7 @@ int main(int argc, char* argv[]) {
     system("makeblastdb -in all_reads.fa -title all_reads -dbtype nucl -out all_reads");
 
     // Create input to CBlastn::do_blastn
+    // The all_reads database files and the MEI file must be accessible by cblastn (same directory or full path)
     string do_blastn = "/home/masonmil/MEI_AD/cblastn/cblastn -db all_reads -in " + MEI + " -out read.all.txt -evalue 0.001";
     system(do_blastn.c_str()); 
 
