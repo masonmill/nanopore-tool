@@ -2,7 +2,7 @@
     Input:
    --------
         -db         Name of BLAST database from makeblastdb (no file ext)
-        -in         Query FASTA file (formatted as <read_name> \n <sequence> \n ...)
+        -in         Query FASTA file containing MEI
         -out        Output file
         -evalue     E-value threshold for saving hits
 
@@ -47,18 +47,21 @@ USING_SCOPE(blast);
  */
 
 /////////////////////////////////////////////////////////////////////////////
-//  CBlastn::
+//  C++ blastn program
 
 class CBlastn : public CNcbiApplication
 {
 private:
     virtual void Init(void);
+
     virtual int  Run(void);
+
     virtual void Exit(void);
-    CSearchResultSet full_blast(TSeqLocVector query_loc, CRef<CBlastOptionsHandle> opts, Uint8 *full_db_size);
+
+    CSearchResultSet blastn(TSeqLocVector query_loc, CRef<CBlastOptionsHandle> opts, Uint8 *full_db_size);
+
     void ProcessCommandLineArgs(CRef<CBlastOptionsHandle> opts_handle);
 };
-
 
 /////////////////////////////////////////////////////////////////////////////
 //  Init test for all different types of arguments
@@ -105,7 +108,7 @@ void CBlastn::ProcessCommandLineArgs(CRef<CBlastOptionsHandle> opts_handle)
     return;
 }
 
-CSearchResultSet CBlastn::full_blast(TSeqLocVector query_loc, CRef<CBlastOptionsHandle> opts, Uint8 *db_size) 
+CSearchResultSet CBlastn::blastn(TSeqLocVector query_loc, CRef<CBlastOptionsHandle> opts, Uint8 *db_size) 
 {
     const CArgs& args = GetArgs();
 
@@ -174,7 +177,7 @@ CSearchResultSet CBlastn::full_blast(TSeqLocVector query_loc, CRef<CBlastOptions
 }
 
 /////////////////////////////////////////////////////////////////////////////
-//  Run test (printout arguments obtained from command-line)
+//  Run; call full_blast and output results
 
 int CBlastn::Run(void)
 {
@@ -207,7 +210,7 @@ int CBlastn::Run(void)
     TSeqLocVector query_loc = blast_input.GetAllSeqLocs(scope);
 
     Uint8 db_size;
-    CSearchResultSet results = full_blast(query_loc, opts, &db_size);
+    CSearchResultSet results = blastn(query_loc, opts, &db_size);
 
     // output number of BLAST hits
     int num_results = 0;
@@ -232,10 +235,10 @@ void CBlastn::Exit(void)
 
 
 /////////////////////////////////////////////////////////////////////////////
-//  MAIN
+//  MAIN turned into a callable function
 
 #ifndef SKIP_DOXYGEN_PROCESSING
-int NcbiSys_main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     // Execute main application function
     return CBlastn().AppMain(argc, argv, 0, eDS_Default, 0);
