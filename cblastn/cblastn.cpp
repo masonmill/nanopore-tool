@@ -169,15 +169,11 @@ CSearchResultSet CBlastn::blastn(TSeqLocVector query_loc, CRef<CBlastOptionsHand
             }
         }
     }
-
-    // Make a vector the size of the number of reads with each read name in ordered location
-    // Apply p-value filter
-
     return results;
 }
 
 /////////////////////////////////////////////////////////////////////////////
-//  Run; call full_blast and output results
+//  Run; call blastn and output results
 
 int CBlastn::Run(void)
 {
