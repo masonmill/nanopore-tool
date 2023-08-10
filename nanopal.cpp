@@ -140,8 +140,19 @@ int main(int argc, char* argv[]) {
     // Get the information of start and end for each read with L1Hs signal
     system("awk '{print $4+$6+$10}' cigar_results.all.txt > cigar.ref.txt");
     system("paste mapped.info.txt cigar.ref.txt | awk '{print $1,$2,$3,$3+$5}' >  mapped.info.final.txt");
-
     
+    // Given BAM file, convert to FASTA
+    // Resulting FASTA file will be saved in current directory as all_reads.fa
+    string bamtofasta = "samtools fasta " + BAM + " > all_reads.fa";
+    system(bamtofasta.c_str());
+
+    // Use resulting file to create a BLAST database
+    // Resulting BLAST database will be saved in current directory with name all_reads
+    system("makeblastdb -in all_reads.fa -title all_reads -dbtype nucl -out all_reads");
+
+    // Create input to CBlastn::do_blastn
+    string do_blastn = "/home/masonmil/MEI_AD/cblastn/cblastn -db all_reads -in " + MEI + " -out read.all.txt -evalue 0.001";
+    system(do_blastn.c_str()); 
 
     return 0;
 }
