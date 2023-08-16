@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
          << "Directory: " << FC << "\n";
 
     // Other input params
-    string lib = "/home/masonmil/software/NanoPal/NanoPal-and-Cas9-targeted-enrichment-pipelines/lib";
+    string lib = "/home/masonmil/software/NanoPal/NanoPal-and-Cas9-targeted-enrichment-pipelines-1.0/lib";
     string REF = "/data/genomes/hg38/seq/hg38.fa";
     string MINIMAP = "/home/masonmil/software/minimap2-2.17_x64-linux/minimap2";
 
@@ -98,10 +98,10 @@ int main(int argc, char* argv[]) {
     }
 
     // PALMER
-    string chr_list = lib + "/chr.list";
+    string chr_list = "/home/masonmil/software/NanoPal/NanoPal-and-Cas9-targeted-enrichment-pipelines-1.0/lib/chr.list";
     string line, do_palmer;
     ifstream list_in;
-    list_in.open(chr_list); // currently not opening
+    list_in.open(chr_list);
     if (list_in.fail()) {
         cerr << "could not open ${lib}/chr.list" << endl;
         exit(1);

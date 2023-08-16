@@ -135,9 +135,6 @@ CSearchResultSet CBlastn::blastn(TSeqLocVector query_loc, CRef<CBlastOptionsHand
     }
     else {
         file.close();
-    }
-
-    if (!err) {
         int seq_id = 0;
         int curr_line = 0;
         string line;
