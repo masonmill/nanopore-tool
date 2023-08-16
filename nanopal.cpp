@@ -6,12 +6,6 @@
 
 using namespace std;
 
-void do_palmer(string output) {
-    string palmer = "/home/masonmil/software/PALMER/PALMER --input Nanopore.sorted.bam --mode raw --workdir palmer/ --output " 
-                    + output + " --ref_ver GRCh8 --ref_fa '/data/genomes/hg38/seq/hg38.fa' --type LINE --chr " + output;
-    system(palmer.c_str());
-}
-
 int main(int argc, char* argv[]) {
     // Changes with each experiment
     string FC; // Directory for output
@@ -102,12 +96,14 @@ int main(int argc, char* argv[]) {
 
     // PALMER
     string chr_list = lib + "/chr.list";
-    string line;
-    ifstream chrlistin(chr_list);
-    while (getline(chrlistin, line)) {
-        do_palmer(line);
+    string line, do_palmer;
+    ifstream list_in(chr_list);
+    while (getline(list_in, line)) {
+        do_palmer = "/home/masonmil/software/PALMER/PALMER --input Nanopore.sorted.bam --mode raw --workdir palmer/ --output " 
+                    + line + " --ref_ver GRCh8 --ref_fa '/data/genomes/hg38/seq/hg38.fa' --type LINE --chr " + line;
+        system(do_palmer.c_str());
     }
-    chrlistin.close();
+    list_in.close();
     system("wait");
 
     system("rm blastn_refine.all.txt");

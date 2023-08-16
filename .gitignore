@@ -20,7 +20,7 @@ cblastn/*
 !cblastn/Makefile.cblastn.app
 
 # Executables and debug files
-main
+nanopal
 *.exe
 *.dSYM
 *.stackdump
