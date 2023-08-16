@@ -11,6 +11,8 @@ data/
 lib/
 makeblastdb/
 ncbi-cxx-toolkit/
+Nanopal-out.workspace.L1.3
+L1.3
 MEI_AD.yml
 
 cblastn/*
@@ -21,6 +23,7 @@ cblastn/*
 
 # Executables and debug files
 nanopal
+nanopal_debug
 *.exe
 *.dSYM
 *.stackdump

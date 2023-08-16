@@ -7,11 +7,17 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    // Changes with each experiment
-    string FC; // Directory for output
-    string BAM; // Nanopore.sorted.bam sample input
-    int nprocs; // 10
-    string MEI; // LINE
+    /*
+     *  Test input:
+     *      -o Nanopal-out
+     *      -b /home/masonmil/MEI_AD/data/MEI_AD_flongle_opt.workspace.LINE/Nanopore.sorted.bam
+     *      -t 10
+     *      -m L1.3 (in workspace folder; using path to loc in lib caused filesystem exception)
+     */
+    string FC;
+    string BAM;
+    int nprocs;
+    string MEI;
 
     // process command line
     opterr = false;
@@ -43,8 +49,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    cout << "************************************************************\n"
-         << "Inputs\n" 
+    cout << "Inputs\n" 
          << "BAM: " << BAM << "\n" 
          << "MEI: " << MEI << "\n"
          << "Directory: " << FC << "\n";
@@ -66,10 +71,10 @@ int main(int argc, char* argv[]) {
 
     // constuct workspace
     string dir = FC + ".workspace." + MEI;
-    bool check = filesystem::create_directory(dir.c_str()); 
+    bool check = filesystem::create_directory(dir.c_str()); // Note: will not overwrite an existing file
     // confirm workspace has been created
     if (!check) {
-        cerr << "Failed to construct workspace" << endl; 
+        cerr << "Failed to construct workspace" << endl;
         exit(1);
     }
     filesystem::current_path(dir.c_str());
@@ -78,14 +83,12 @@ int main(int argc, char* argv[]) {
     string fastq = "samtools fastq " + BAM + " > batch.fastq";
     system(fastq.c_str());
     system("cat batch.fastq  | awk '{if(NR%4==1) {printf(\">%s\\n\",substr($0,2));} else if(NR%4==2) print;}' > batch.fasta");
-    system("wait");
 
     // alignment
     string align = MINIMAP + " -ax map-ont --secondary=no --eqx -Y -t " + to_string(nprocs) + " " + REF + " batch.fastq " + 
                    " | samtools sort -o Nanopore.sorted.bam";
     system(align.c_str());
     system("samtools index Nanopore.sorted.bam");
-    system("wait");
 
     check = filesystem::create_directory("palmer");
     // confirm workspace has been created
@@ -97,14 +100,19 @@ int main(int argc, char* argv[]) {
     // PALMER
     string chr_list = lib + "/chr.list";
     string line, do_palmer;
-    ifstream list_in(chr_list);
+    ifstream list_in;
+    list_in.open(chr_list); // currently not opening
+    if (list_in.fail()) {
+        cerr << "could not open ${lib}/chr.list" << endl;
+        exit(1);
+    }
+
     while (getline(list_in, line)) {
         do_palmer = "/home/masonmil/software/PALMER/PALMER --input Nanopore.sorted.bam --mode raw --workdir palmer/ --output " 
                     + line + " --ref_ver GRCh8 --ref_fa '/data/genomes/hg38/seq/hg38.fa' --type LINE --chr " + line;
         system(do_palmer.c_str());
     }
     list_in.close();
-    system("wait");
 
     system("rm blastn_refine.all.txt");
     system("cat palmer/chr*_*_*/blastn_refine.txt >> blastn_refine.all.txt");
@@ -125,7 +133,6 @@ int main(int argc, char* argv[]) {
         outfile << d;
         outfile.close();
         system("./cigar.parser.1106.o");
-        system("wait");
         ifstream cigar_results("cigar_results");
         ofstream cigar_results_all("cigar_results.all.txt", ios::app);
         cigar_results_all << cigar_results.rdbuf();
