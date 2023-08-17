@@ -1,5 +1,18 @@
+/*
+ *      Test input:
+ *     -------------
+ *          -o Nanopal-out
+ *          -b /home/masonmil/MEI_AD/data/MEI_AD_flongle_opt.workspace.LINE/Nanopore.sorted.bam
+ *          -t 10
+ *          -m /home/masonmil/MEI_AD/lib/L1.3
+ * 
+ *      Note: CBlastn output currently in a format different from the BLAST+ command line blastn 
+ *          output used in Nano-Pal_CM.LINE.parallel.sh.
+ * 
+ */
+
 #include <cstring>
-#include <filesystem>
+#include <filesystem> // as of C++17
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
@@ -7,13 +20,6 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    /*
-     *  Test input:
-     *      -o Nanopal-out
-     *      -b /home/masonmil/MEI_AD/data/MEI_AD_flongle_opt.workspace.LINE/Nanopore.sorted.bam
-     *      -t 10
-     *      -m L1.3 (in workspace folder; using path to loc in lib caused filesystem exception)
-     */
     string FC;
     string BAM;
     int nprocs;
@@ -49,7 +55,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    cout << "Inputs\n" 
+    cout << "Nano-Pal Input\n" 
          << "BAM: " << BAM << "\n" 
          << "MEI: " << MEI << "\n"
          << "Directory: " << FC << "\n";
@@ -70,19 +76,19 @@ int main(int argc, char* argv[]) {
     string S_PP_LINE = lib + "/union.1214/L1.inter.fi";
 
     // constuct workspace
-    string dir = FC + ".workspace." + MEI;
-    bool check = filesystem::create_directory(dir.c_str()); // Note: will not overwrite an existing file
-    // confirm workspace has been created
-    if (!check) {
-        cerr << "Failed to construct workspace" << endl;
-        exit(1);
-    }
-    filesystem::current_path(dir.c_str());
+    string dir = FC + ".workspace";
+    /*
+     *  Note: workspace directory name modified from ${FC}.workspace.${MEI} to ${FC}.workspace
+     *      due to errors with directories and file paths 
+     */
+    string mkdir = "mkdir " + dir;
+    system(mkdir.c_str());
+    filesystem::current_path(dir); // system cd call did not change directory
 
     // RAW fastq data & generate fasta
     string fastq = "samtools fastq " + BAM + " > batch.fastq";
     system(fastq.c_str());
-    system("cat batch.fastq  | awk '{if(NR%4==1) {printf(\">%s\\n\",substr($0,2));} else if(NR%4==2) print;}' > batch.fasta");
+    system("cat batch.fastq | awk '{if(NR%4==1) {printf(\">%s\\n\",substr($0,2));} else if(NR%4==2) print;}' > batch.fasta");
 
     // alignment
     string align = MINIMAP + " -ax map-ont --secondary=no --eqx -Y -t " + to_string(nprocs) + " " + REF + " batch.fastq " + 
@@ -90,12 +96,7 @@ int main(int argc, char* argv[]) {
     system(align.c_str());
     system("samtools index Nanopore.sorted.bam");
 
-    check = filesystem::create_directory("palmer");
-    // confirm workspace has been created
-    if (!check) {
-        cerr << "Failed to construct workspace palmer" << endl; 
-        exit(1);
-    }
+    system("mkdir palmer");
 
     // PALMER
     string chr_list = "/home/masonmil/software/NanoPal/NanoPal-and-Cas9-targeted-enrichment-pipelines-1.0/lib/chr.list";
@@ -109,7 +110,7 @@ int main(int argc, char* argv[]) {
 
     while (getline(list_in, line)) {
         do_palmer = "/home/masonmil/software/PALMER/PALMER --input Nanopore.sorted.bam --mode raw --workdir palmer/ --output " 
-                    + line + " --ref_ver GRCh8 --ref_fa '/data/genomes/hg38/seq/hg38.fa' --type LINE --chr " + line;
+                    + line + " --ref_ver GRCh38 --ref_fa '/data/genomes/hg38/seq/hg38.fa' --type LINE --chr " + line;
         system(do_palmer.c_str());
     }
     list_in.close();
@@ -145,18 +146,29 @@ int main(int argc, char* argv[]) {
     system("paste mapped.info.txt cigar.ref.txt | awk '{print $1,$2,$3,$3+$5}' >  mapped.info.final.txt");
     
     // Given BAM file, convert to FASTA
-    // Resulting FASTA file will be saved in current directory as all_reads.fa
-    string bamtofasta = "samtools fasta " + BAM + " > all_reads.fa";
+    // Resulting FASTA file will be saved in current directory
+    // FASTA file: all_reads.fa
+    filesystem::current_path("/home/masonmil/MEI_AD/cblastn");
+    string bamtofasta = "samtools fasta " + BAM + " > all_reads.fasta"; // input must have file ext .fasta for cblastn
     system(bamtofasta.c_str());
 
     // Use resulting file to create a BLAST database
-    // Resulting BLAST database will be saved in current directory with name all_reads
-    system("makeblastdb -in all_reads.fa -title all_reads -dbtype nucl -out all_reads");
+    // Resulting BLAST database will be saved in current directory
+    // Database files: all_reads.nhr, all_reads.nin, all_reads.nsq
+    system("makeblastdb -in all_reads.fasta -title all_reads -dbtype nucl -out all_reads");
 
     // Create input to CBlastn::do_blastn
     // The all_reads database files and the MEI file must be accessible by cblastn (same directory or full path)
-    string do_blastn = "/home/masonmil/MEI_AD/cblastn/cblastn -db all_reads -in " + MEI + " -out read.all.txt -evalue 0.001";
+    // CBlastn output file: read.all.txt
+    string do_blastn = "/home/masonmil/MEI_AD/cblastn/cblastn -db all_reads -in " + MEI + 
+                       " -out /home/masonmil/MEI_AD/" + dir + "/read.all.txt -evalue 0.001";
     system(do_blastn.c_str()); 
+
+    /*
+     *      Note: cblastn output will require reformatting before continuing with the translation of 
+     *          the Nano-Pal_CM.LINE.parallel script to C/C++.
+     * 
+     */
 
     return 0;
 }
