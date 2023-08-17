@@ -1,16 +1,26 @@
 /*
-    Input:
-   --------
-        -db         Name of BLAST database from makeblastdb (no file ext)
-        -in         Query FASTA file containing MEI
-        -out        Output file
-        -evalue     E-value threshold for saving hits
-
-    Output:
-   ---------
-        Summary of CBlastn results
-
-*/
+ *      Input:
+ *     --------
+ *      -db         Name of BLAST database from makeblastdb (no file ext)
+ *      -in         Query FASTA file containing MEI
+ *      -out        Output file
+ *      -evalue     E-value threshold for saving hits
+ *
+ *      Output:
+ *     ---------
+ *      Summary of CBlastn results
+ * 
+ *      Note: in order to make use of this prorgam in nanopal, you must download, configure, and
+ *          build the NCBI C++ Toolkit and use new_project.sh to generate Makefiles according to
+ *          your specific toolkit configuration. Copying the files included in this project will
+ *          not result in usable code since the toolkit has been configured to my computer and 
+ *          where I have chosen to save specific files. 
+ *          
+ *          If you need help setting up the NCBI C++ Toolkit environment on your machine, please 
+ *          let me know because there are limited resources online and small mistakes in the 
+ *          process can result in various errors.
+ * 
+ */
 
 #include <cstring>
 #include <fstream>
@@ -40,10 +50,10 @@ USING_NCBI_SCOPE;
 USING_SCOPE(blast);
 
 /*
- * Boilerplate command-line argument processing code automatically generated
- * by new_project.sh script in NCBI C++ Toolkit
+ *  Boilerplate command-line argument processing code automatically generated
+ *      by new_project.sh script in NCBI C++ Toolkit
  *
- *     Authors:  Denis Vakatov, Vladimir Ivanov
+ *      Authors:  Denis Vakatov, Vladimir Ivanov
  */
 
 /////////////////////////////////////////////////////////////////////////////
