@@ -9,17 +9,6 @@
  *      Output:
  *     ---------
  *      Summary of CBlastn results
- * 
- *      Note: in order to make use of this prorgam in nanopal, you must download, configure, and
- *          build the NCBI C++ Toolkit and use new_project.sh to generate Makefiles according to
- *          your specific toolkit configuration. Copying the files included in this project will
- *          not result in usable code since the toolkit has been configured to my computer and 
- *          where I have chosen to save specific files. 
- *          
- *          If you need help setting up the NCBI C++ Toolkit environment on your machine, please 
- *          let me know because there are limited resources online and small mistakes in the 
- *          process can result in various errors.
- * 
  */
 
 #include <cstring>
@@ -153,7 +142,7 @@ CSearchResultSet CBlastn::blastn(TSeqLocVector query_loc, CRef<CBlastOptionsHand
         
         for (unsigned int i = 0; i < results.GetNumResults(); i++) {
             CConstRef<CSeq_align_set> sas = results[i].GetSeqAlign();
-            // cout << MSerial_AsnText << *sas;
+            // cout << MSerial_AsnText << *sas; // verbose
 
             const list <CRef<CSeq_align>> &seqAlignList = sas->Get();
             for (list <CRef<CSeq_align>>::const_iterator seqAlign_it = ((ncbi::s_ITERATE_ConstRef(seqAlignList)).begin()); 
