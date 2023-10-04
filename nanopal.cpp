@@ -5,10 +5,6 @@
  *          -b /home/masonmil/MEI_AD/data/MEI_AD_flongle_opt.workspace.LINE/Nanopore.sorted.bam
  *          -t 10
  *          -m /home/masonmil/MEI_AD/lib/L1.3
- * 
- *      Note: CBlastn output currently in a format different from the BLAST+ command line blastn 
- *          output used in Nano-Pal_CM.LINE.parallel.sh.
- * 
  */
 
 #include <cstring>
@@ -83,7 +79,7 @@ int main(int argc, char* argv[]) {
      */
     string mkdir = "mkdir " + dir;
     system(mkdir.c_str());
-    filesystem::current_path(dir); // system cd call did not change directory
+    filesystem::current_path(dir);
 
     // RAW fastq data & generate fasta
     string fastq = "samtools fastq " + BAM + " > batch.fastq";
