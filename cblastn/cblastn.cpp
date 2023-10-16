@@ -123,47 +123,45 @@ CSearchResultSet CBlastn::blastn(TSeqLocVector query_loc, CRef<CBlastOptionsHand
 
     CSearchResultSet results = *blaster.Run();
 
-    // print hits
     ifstream file;
     string filename = args["db"].AsString() + ".fasta";
     file.open(filename);
-    int err = 0;
+    // make sure file is valid
     if (file.fail()) {
         cerr << "Could not open file " << filename << endl;
-        err = 1;
+	return results;
     }
-    else {
-        file.close();
-        int seq_id = 0;
-        int curr_line = 0;
-        string line;
+    file.close();
+    int seq_id = 0;
+    int curr_line = 0;
+    string line;
+	
+    out << "Read name: <read_name>\nHit at pos <start-end>\nEvalue: <evalue> \n\n";
 
-        out << "Read name: <read_name>\nHit at pos <start-end>\nEvalue: <evalue> \n\n";
-        
-        for (unsigned int i = 0; i < results.GetNumResults(); i++) {
-            CConstRef<CSeq_align_set> sas = results[i].GetSeqAlign();
-            // cout << MSerial_AsnText << *sas; // verbose
-
-            const list <CRef<CSeq_align>> &seqAlignList = sas->Get();
-            for (list <CRef<CSeq_align>>::const_iterator seqAlign_it = ((ncbi::s_ITERATE_ConstRef(seqAlignList)).begin()); 
-                seqAlign_it != ncbi::s_ITERATE_ConstRef(seqAlignList).end(); ++seqAlign_it ) {
-                file.open(filename);
-                seq_id = 0;
-                curr_line = 0;
-                sscanf((*seqAlign_it)->GetSeq_id(1).GetSeqIdString().c_str(), "%*[^:]:%d", &seq_id);
-                while (!file.eof()) {
-                    ++curr_line;
-                    getline(file, line);
-                    if (curr_line == (seq_id * 2) - 1) break;
-                }
-                file.close();
-                out << "Read name: " << line << "\n"
-                    << "Hit at pos " << (*seqAlign_it)->GetSeqStart(1) << "-" << (*seqAlign_it)->GetSeqStop(1) << "\n";
-                double evalue;
-                (*seqAlign_it)->GetNamedScore(CSeq_align::eScore_EValue, evalue);
-                out << "E-value: " << evalue << "\n\n";
-            }
-        }
+    // print hits
+    for (unsigned int i = 0; i < results.GetNumResults(); i++) {
+        CConstRef<CSeq_align_set> sas = results[i].GetSeqAlign();
+	// cout << MSerial_AsnText << *sas; // verbose
+	
+	const list <CRef<CSeq_align>> &seqAlignList = sas->Get();
+	for (list <CRef<CSeq_align>>::const_iterator seqAlign_it = ((ncbi::s_ITERATE_ConstRef(seqAlignList)).begin()); 
+	    seqAlign_it != ncbi::s_ITERATE_ConstRef(seqAlignList).end(); ++seqAlign_it ) {
+	    file.open(filename);
+	    seq_id = 0;
+	    curr_line = 0;
+	    sscanf((*seqAlign_it)->GetSeq_id(1).GetSeqIdString().c_str(), "%*[^:]:%d", &seq_id);
+	    while (!file.eof()) {
+		++curr_line;
+		getline(file, line);
+		if (curr_line == (seq_id * 2) - 1) break;
+	    }
+	    file.close();
+	    out << "Read name: " << line << "\n"
+		<< "Hit at pos " << (*seqAlign_it)->GetSeqStart(1) << "-" << (*seqAlign_it)->GetSeqStop(1) << "\n";
+	    double evalue;
+	    (*seqAlign_it)->GetNamedScore(CSeq_align::eScore_EValue, evalue);
+	    out << "E-value: " << evalue << "\n\n";
+	}
     }
     return results;
 }
